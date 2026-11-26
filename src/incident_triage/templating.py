@@ -23,8 +23,9 @@ _SECRETS = [
     (re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b"), "<SECRET>"),
     # API keys with a recognisable prefix (sk-..., GitHub, Google)
     (re.compile(r"\b(?:sk-[\w-]{20,}|gh[pousr]_[A-Za-z0-9]{20,}|AIza[\w-]{30,})"), "<SECRET>"),
-    # password=..., token: ...
-    (re.compile(r"(?i)\b(password|passwd|pwd|token|secret|api[_-]?key)\s*[=:]\s*\S+"), r"\1=<SECRET>"),
+    # password=..., token: ..., and JSON style "password": "..." (key and value may be quoted)
+    (re.compile(r"""(?i)(["']?\b(?:password|passwd|pwd|token|secret|api[_-]?key)["']?\s*[=:]\s*)"""
+                r"""(?:"[^"]*"|'[^']*'|\S+)"""), r"\1<SECRET>"),
 ]
 _EMAIL  = (re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"), "<EMAIL>")
 _UUID   = (re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"

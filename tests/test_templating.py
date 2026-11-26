@@ -37,6 +37,9 @@ SECRETS = [
     ("using key AKIAIOSFODNN7EXAMPLE", "AKIAIOSFODNN7EXAMPLE"),
     ("key sk-" + "a" * 24 + " refused", "sk-" + "a" * 24),
     ("password=hunter2", "hunter2"),
+    ('{"password": "hunter2"}', "hunter2"),
+    ('{"user":"bob","api_key":"abc123"}', "abc123"),
+    ("{'token': 'two words'}", "two words"),
 ]
 
 
