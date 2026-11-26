@@ -15,7 +15,10 @@ class GoogleProvider:
     def __init__(self, model: str | None = None) -> None:
         self.model = model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         # Reads GEMINI_API_KEY (or GOOGLE_API_KEY) from the environment.
-        self.client = genai.Client()
+        try:
+            self.client = genai.Client()
+        except ValueError as e:           # raised when no API key is set
+            raise LLMError(f"could not set up Gemini (is GEMINI_API_KEY set?): {e}") from e
 
     def complete(self, system: str, user: str) -> str:
         try:

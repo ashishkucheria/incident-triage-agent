@@ -21,6 +21,16 @@ from incident_triage.triage import TriageError, triage
 EXIT_OK, EXIT_USAGE, EXIT_LLM = 0, 2, 3
 
 
+def positive_int(text: str) -> int:
+    try:
+        value = int(text)
+    except ValueError:
+        value = 0
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"must be a whole number of 1 or more, got {text!r}")
+    return value
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         prog="triage",
@@ -29,7 +39,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("logfile", type=Path, help="path to the log file")
     p.add_argument("--format", default="hdfs", choices=sorted(PARSERS), help="log format (default: hdfs)")
     p.add_argument("--provider", help="anthropic | google | fake (default: LLM_PROVIDER env, else anthropic)")
-    p.add_argument("--top", type=int, default=5, help="clusters sent to the LLM (default: 5)")
+    p.add_argument("--top", type=positive_int, default=5, help="clusters sent to the LLM (default: 5)")
     p.add_argument("--out", type=Path, default=Path("reports"), help="folder for the report (default: reports/)")
     p.add_argument("--no-llm", action="store_true", help="only show ranked clusters; no LLM call, no cost")
     return p.parse_args(argv)
