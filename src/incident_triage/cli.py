@@ -75,12 +75,17 @@ def main(argv: list[str] | None = None) -> int:
     # Stage 4: the only paid, non-deterministic step
     try:
         provider = get_provider(args.provider)
-        label = f"{provider.name} / {getattr(provider, 'model', '?')}"
-        print(f"Asking {label} ...", file=sys.stderr)
-        result = triage(ranked, provider, top_n=args.top)
     except ValueError as e:          # unknown provider name
         print(f"error: {e}", file=sys.stderr)
         return EXIT_USAGE
+    except LLMError as e:            # e.g. no API key
+        print(f"error: triage failed: {e}", file=sys.stderr)
+        return EXIT_LLM
+
+    label = f"{provider.name} / {getattr(provider, 'model', '?')}"
+    print(f"Asking {label} ...", file=sys.stderr)
+    try:
+        result = triage(ranked, provider, top_n=args.top)
     except (LLMError, TriageError) as e:
         print(f"error: triage failed: {e}", file=sys.stderr)
         return EXIT_LLM

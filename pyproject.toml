@@ -4,7 +4,7 @@ version = "0.1.0"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
-dependencies = ["anthropic", "google-genai", "python-dotenv"]
+dependencies = ["anthropic>=2.14", "google-genai", "python-dotenv"]
 
 [project.optional-dependencies]
 dev = ["pytest"]

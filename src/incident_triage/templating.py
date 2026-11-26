@@ -13,8 +13,11 @@ import re
 # Order matters: specific patterns first, generic numbers last.
 # Otherwise "blk_123" would become "blk_<NUM>" and "10.0.0.1" would become "<NUM>.<NUM>...".
 _SECRETS = [
-    # "Authorization: Bearer abc", "Authorization: Basic abc"
-    (re.compile(r"(?i)\b(authorization\s*[:=]\s*(?:bearer|basic|token|apikey)\s+)[^\s,;\"']+"), r"\1<SECRET>"),
+    # "Authorization: Digest username=..., response=..." carries several fields: mask the rest of the line
+    (re.compile(r"(?i)\b((?:proxy-)?authorization\s*[:=]\s*digest\s+)[^\r\n]+"), r"\1<SECRET>"),
+    # "Authorization: Bearer abc", "Authorization: Basic abc", or no scheme at all: "Authorization: abc"
+    (re.compile(r"(?i)\b((?:proxy-)?authorization\s*[:=]\s*"
+                r"(?:(?:bearer|basic|token|apikey|negotiate|ntlm)\s+)?)(?!digest\s)[^\s,;\"']+"), r"\1<SECRET>"),
     # A bare "Bearer abc123..." (must contain a digit, so "bearer authentication" is left alone)
     (re.compile(r"(?i)\b(bearer\s+)(?=[\w.~+/=-]*\d)[\w.~+/=-]{8,}"), r"\1<SECRET>"),
     # JSON Web Tokens

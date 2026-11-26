@@ -23,6 +23,15 @@ def test_missing_file_is_a_usage_error(logfile):
     assert cli.main([str(logfile) + ".missing", "--no-llm"]) == cli.EXIT_USAGE
 
 
+def test_unknown_provider_is_a_usage_error(logfile):
+    assert cli.main([str(logfile), "--provider", "nope"]) == cli.EXIT_USAGE
+
+
+def test_invalid_llm_answer_is_an_llm_error(logfile):
+    # The fake provider's default answer is empty, so validation fails twice.
+    assert cli.main([str(logfile), "--provider", "fake"]) == cli.EXIT_LLM
+
+
 @pytest.mark.parametrize("top", ["0", "-1", "abc"])
 def test_top_must_be_positive(logfile, top, capsys):
     with pytest.raises(SystemExit) as exit_info:
