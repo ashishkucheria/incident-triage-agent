@@ -14,7 +14,13 @@ class AnthropicProvider:
     def __init__(self, model: str | None = None) -> None:
         self.model = model or os.getenv("LLM_MODEL", "claude-opus-5-5")
         # Reads ANTHROPIC_API_KEY from the environment; SDK retries 429/5xx itself.
-        self.client = anthropic.Anthropic(max_retries=3, timeout=120)
+        try:
+            self.client = anthropic.Anthropic(max_retries=3, timeout=120)
+        except anthropic.AnthropicError as e:
+            raise LLMError(f"could not set up the Anthropic client: {e}") from e
+        # The SDK only notices missing credentials at request time, as a TypeError.
+        if not (self.client.api_key or self.client.auth_token or self.client.credentials):
+            raise LLMError("no Anthropic credentials: set ANTHROPIC_API_KEY in .env")
 
     def complete(self, system: str, user: str) -> str:
         try:

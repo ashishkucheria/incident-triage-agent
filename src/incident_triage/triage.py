@@ -34,17 +34,28 @@ class TriageError(Exception):
     """The model's answer could not be turned into a valid TriageReport."""
 
 
+# The "<" of anything that looks like our data-fence tag, opening or closing.
+_FENCE = re.compile(r"<(?=\s*/?\s*log_data)", re.IGNORECASE)
+
+
+def _fence_safe(text: str) -> str:
+    """Stop a log line from closing (or opening) a <log_data> block."""
+    return _FENCE.sub("&lt;", text)
+
+
 def build_prompt(ranked: list[tuple[Cluster, Score]], top_n: int = 5) -> str:
+    if top_n < 1:
+        raise ValueError("top_n must be at least 1")
     total = sum(c.count for c, _ in ranked)
     parts = [f"Log file: {total} lines, {len(ranked)} clusters. Top {min(top_n, len(ranked))} by score:\n"]
     for cluster, s in ranked[:top_n]:
         parts.append(
             f"<log_data cluster_id=\"{cluster.id}\">\n"
-            f"template: {cluster.template}\n"
+            f"template: {_fence_safe(cluster.template)}\n"
             f"count: {cluster.count}  level: {cluster.max_level.name}\n"
             f"first_seen: {cluster.first_seen}  last_seen: {cluster.last_seen}\n"
             f"score: {s.total:.2f} (severity={s.severity}, keywords={s.keywords}, rarity={s.rarity:.2f})\n"
-            "samples:\n" + "\n".join(f"  {line}" for line in cluster.samples) +
+            "samples:\n" + "\n".join(f"  {_fence_safe(line)}" for line in cluster.samples) +
             "\n</log_data>\n"
         )
     return "\n".join(parts)
@@ -70,8 +81,8 @@ def parse_response(text: str, valid_ids: set[str]) -> TriageReport:
         raise TriageError("model_confidence must be low, medium or high") from None
 
     evidence = data.get("evidence")
-    if not isinstance(evidence, list) or not evidence:
-        raise TriageError("evidence must be a non-empty list of cluster ids")
+    if not isinstance(evidence, list) or not evidence or not all(isinstance(e, str) for e in evidence):
+        raise TriageError("evidence must be a non-empty list of cluster id strings")
     unknown = [e for e in evidence if e not in valid_ids]
     if unknown:
         raise TriageError(f"evidence cites clusters that do not exist: {unknown}")
