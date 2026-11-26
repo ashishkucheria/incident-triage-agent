@@ -32,6 +32,9 @@ def test_uuid_is_replaced_whole():
 SECRETS = [
     ("Authorization: Bearer eyJhbGciOi.abc.def", "eyJhbGciOi.abc.def"),
     ("Authorization: Basic dXNlcjpwYXNz", "dXNlcjpwYXNz"),
+    ('Authorization: Digest username="bob", response="6629fae49393a053"', "6629fae49393a053"),
+    ("Authorization: abc123def", "abc123def"),
+    ("Proxy-Authorization: Negotiate YIIFzQYGKwYB", "YIIFzQYGKwYB"),
     ("sent bearer abc123def456", "abc123def456"),
     ("jwt eyJhbGciOi.eyJzdWIi.sig rejected", "eyJhbGciOi.eyJzdWIi.sig"),
     ("using key AKIAIOSFODNN7EXAMPLE", "AKIAIOSFODNN7EXAMPLE"),

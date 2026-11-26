@@ -19,7 +19,9 @@ class AnthropicProvider:
         except anthropic.AnthropicError as e:
             raise LLMError(f"could not set up the Anthropic client: {e}") from e
         # The SDK only notices missing credentials at request time, as a TypeError.
-        if not (self.client.api_key or self.client.auth_token or self.client.credentials):
+        # getattr: older SDKs lack auth_token/credentials, and must still give this message.
+        if not (self.client.api_key or getattr(self.client, "auth_token", None)
+                or getattr(self.client, "credentials", None)):
             raise LLMError("no Anthropic credentials: set ANTHROPIC_API_KEY in .env")
 
     def complete(self, system: str, user: str) -> str:
